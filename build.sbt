@@ -5,6 +5,7 @@ version := "1.0"
 scalaVersion := "2.11.0"
 
 libraryDependencies += "org.apache.spark" % "spark-core_2.11" % "2.0.2"  exclude ("io", "netty")
+
 libraryDependencies += "org.apache.spark" % "spark-mllib_2.11" % "2.0.2" exclude ("io", "netty")
 
 // https://mvnrepository.com/artifact/com.hankcs/hanlp

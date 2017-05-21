@@ -1,4 +1,4 @@
-package grpc.client
+package com.bigchange.grpc.client
 
 import java.util.concurrent.TimeUnit
 

@@ -1,6 +1,6 @@
-package grpc
+package com.bigchange.grpc
 
-import grpc.client.GreeterClient
+import com.bigchange.grpc.client.GreeterClient
 import grpc.server.GreeterServer
 
 /**

@@ -1,4 +1,4 @@
-package grpc.impl
+package com.bigchange.grpc.impl
 
 import com.bgfurfeature.hello.rpc.hello.{GreeterGrpc, HelloReply, HelloRequest}
 

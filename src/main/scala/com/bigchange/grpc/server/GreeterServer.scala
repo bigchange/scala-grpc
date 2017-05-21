@@ -1,7 +1,7 @@
-package grpc.server
+package com.bigchange.grpc.server
 
 import com.bgfurfeature.hello.rpc.hello.GreeterGrpc
-import grpc.impl.GreeterServerImpl
+import com.bigchange.grpc.impl.GreeterServerImpl
 import io.grpc.{Server, ServerBuilder}
 import io.vertx.core.logging.{Logger, LoggerFactory}
 
