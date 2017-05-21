@@ -14,19 +14,23 @@ libraryDependencies += "com.hankcs" % "hanlp" % "portable-1.3.3" exclude ("io", 
 // https://mvnrepository.com/artifact/io.vertx/vertx-core
 libraryDependencies += "io.vertx" % "vertx-core" % "3.4.1" exclude ("io", "netty")
 
+libraryDependencies += "io.grpc" % "grpc-all" % "1.3.0"
+
+libraryDependencies += "com.google.protobuf" % "protobuf-java" % "3.2.0"
+
+// generate scala code
 PB.targets in Compile := Seq(
   scalapb.gen() -> (sourceManaged in Compile).value
 )
 
-// (optional) If you need scalapb/scalapb.proto or anything from
-// google/protobuf/*.proto
-libraryDependencies += "com.trueaccord.scalapb" %% "scalapb-runtime" % com.trueaccord.scalapb
-  .compiler.Version.scalapbVersion % "protobuf" exclude ("io", "netty")
+PB.protocVersion := "-v320"
 
-libraryDependencies ++= Seq(
-  "io.grpc" % "grpc-netty" % com.trueaccord.scalapb.compiler.Version.grpcJavaVersion,
-  "com.trueaccord.scalapb" %% "scalapb-runtime-grpc" % com.trueaccord.scalapb.compiler.Version
-    .scalapbVersion exclude ("io", "netty")
+libraryDependencies += "com.trueaccord.scalapb" %% "scalapb-runtime" % com.trueaccord.scalapb
+   .compiler.Version.scalapbVersion % "protobuf" exclude ("io", "netty")
+
+libraryDependencies ++= Seq("io.grpc" % "grpc-netty" % com.trueaccord.scalapb.compiler.Version.grpcJavaVersion,
+  "com.trueaccord.scalapb" %% "scalapb-runtime-grpc"
+    % com.trueaccord.scalapb.compiler.Version.scalapbVersion exclude ("io", "netty")
 )
 
 assemblyMergeStrategy in assembly := {
@@ -40,10 +44,12 @@ assemblyMergeStrategy in assembly := {
   case PathList("com", "esotericsoftware", xs @ _*) => MergeStrategy.last
   case PathList("com", "codahale", xs @ _*) => MergeStrategy.last
   case PathList("com", "yammer", xs @ _*) => MergeStrategy.last
+  case PathList("com", "google", xs @ _*) => MergeStrategy.last
   case PathList("io", "netty", xs @ _*) => MergeStrategy.last
   case "about.html" => MergeStrategy.rename
   case "META-INF/ECLIPSEF.RSA" => MergeStrategy.last
   case "META-INF/mailcap" => MergeStrategy.last
+  case "META-INF/io.netty.versions.properties" => MergeStrategy.last
   case "META-INF/mimetypes.default" => MergeStrategy.last
   case "plugin.properties" => MergeStrategy.last
   case "log4j.properties" => MergeStrategy.last
