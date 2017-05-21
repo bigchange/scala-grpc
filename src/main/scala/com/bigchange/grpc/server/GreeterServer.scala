@@ -2,8 +2,8 @@ package com.bigchange.grpc.server
 
 import com.bgfurfeature.hello.rpc.hello.GreeterGrpc
 import com.bigchange.grpc.impl.GreeterServerImpl
+import com.bigchange.model.TFIDF
 import io.grpc.{Server, ServerBuilder}
-import io.vertx.core.logging.{Logger, LoggerFactory}
 
 import scala.concurrent.ExecutionContext
 
@@ -11,16 +11,16 @@ import scala.concurrent.ExecutionContext
   * Created by Jerry on 2017/5/21.
   */
 
-class GreeterServer(port: Int) { self =>
+class GreeterServer(port: Int, executionContext: ExecutionContext) { self =>
 
   private var server: Server = null
+
+  private val service:GreeterServerImpl = new GreeterServerImpl
 
   def start = {
 
     server  = ServerBuilder.forPort(port)
-      .addService(GreeterGrpc.bindService(new GreeterServerImpl, executionContext =
-        ExecutionContext.global))
-      .build().start()
+      .addService(GreeterGrpc.bindService(service , executionContext)).build().start()
 
     println("server listen port:" + port)
 
@@ -48,9 +48,9 @@ object GreeterServer {
 
   private [this] var gserver :GreeterServer = null
 
-  def apply(port: Int): GreeterServer = {
+  def apply(port: Int, executionContext: ExecutionContext): GreeterServer = {
     if (gserver == null) {
-      new GreeterServer(port)
+      new GreeterServer(port, executionContext)
     } else {
       gserver
     }

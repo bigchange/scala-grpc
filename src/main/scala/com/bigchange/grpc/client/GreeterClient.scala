@@ -13,10 +13,7 @@ import scala.util.{Failure, Success, Try}
   */
 class GreeterClient (host: String, port: Int) { self =>
 
-  private val channel = ManagedChannelBuilder
-    .forAddress(host, port)
-    .usePlaintext(true)
-    .build()
+  private val channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext(true).build()
 
   private val blockingStub = GreeterGrpc.blockingStub(channel)
 
@@ -24,7 +21,10 @@ class GreeterClient (host: String, port: Int) { self =>
     channel.shutdown.awaitTermination(5, TimeUnit.SECONDS)
   }
 
-  // using blcoking stub call
+  /**
+    * using blcoking stub call
+    * @param msg
+    */
   def greeter (msg:String) = {
 
     val request = HelloRequest.apply(msg)
@@ -41,7 +41,11 @@ class GreeterClient (host: String, port: Int) { self =>
         println("Gprc failed!! " + exception.getMessage)
     }
   }
-  // Async call - 异步调用
+
+  /**
+    * Async call - 异步调用
+    * @param msg
+    */
   def greeterAsync (msg: String) = {
     implicit val executionContext = ExecutionContext.global
     val request = HelloRequest(msg)

@@ -1,17 +1,18 @@
 package com.bigchange.grpc
 
 import com.bigchange.grpc.server.GreeterServer
-import grpc.server.GreeterServer
+
+import scala.concurrent.ExecutionContext
 
 /**
   * Created by Jerry on 2017/5/21.
   */
-object GrpcServer {
+object GrpcMainServer {
 
   def main(args: Array[String]): Unit = {
 
-    val port = 30399
-    val server = GreeterServer.apply(port)
+    val port = 50051
+    val server = GreeterServer.apply(port, ExecutionContext.global)
     server.start
     server.blockUntilShutdown
   }
