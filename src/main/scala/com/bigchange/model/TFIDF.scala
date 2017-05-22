@@ -21,9 +21,9 @@ object TFIDF extends Serializable {
 
   def apply(sc: SparkContext, originData:String, formatData: String): TFIDF = {
     if (model == null)
-      new TFIDF(sc, originData, formatData)
-    else
-      model
+      model = new TFIDF(sc, originData, formatData)
+    model
+
   }
 
   def getInstance = model
