@@ -17,6 +17,8 @@ class GreeterClient (host: String, port: Int) { self =>
 
   private val blockingStub = GreeterGrpc.blockingStub(channel)
 
+  implicit val executionContext = ExecutionContext.global
+
   def shutdown(): Unit = {
     channel.shutdown.awaitTermination(5, TimeUnit.SECONDS)
   }
@@ -44,10 +46,10 @@ class GreeterClient (host: String, port: Int) { self =>
 
   /**
     * Async call - 异步调用
+    * 测试出现无法连接上
     * @param msg
     */
   def greeterAsync (msg: String) = {
-    implicit val executionContext = ExecutionContext.global
     val request = HelloRequest(msg)
     val stub = GreeterGrpc.stub(channel)
     val f = stub.sayHello(request)

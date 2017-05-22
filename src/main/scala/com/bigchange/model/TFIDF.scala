@@ -15,39 +15,45 @@ import org.apache.spark.{SparkConf, SparkContext}
 import scala.collection.mutable.ListBuffer
 import scala.reflect.io.File
 
+object TFIDF extends Serializable {
+
+  private var model: TFIDF = null
+
+  def apply(sc: SparkContext, originData:String, formatData: String): TFIDF = {
+    if (model == null)
+      new TFIDF(sc, originData, formatData)
+    else
+      model
+  }
+
+  def getInstance = model
+
+}
 /**
   * Created by Administrator on 2016/1/14.
   *  spark mllib 中的tf-idf 算法计算文档相似度
+  *  originData : 需要训练的数据的原始map格式（txt, id）
+  *  formatData: 用来训练的数据格式（text split by ","， id）
   */
-object TFIDF {
+class TFIDF (sc: SparkContext, originData:String, formatData: String) extends Serializable {
 
 
   type tfidfModel = (IDFModel, RDD[(Long, Vector)])
 
-  val conf = new SparkConf().setAppName("TfIdfTest").setMaster("local")
-  val sc = new SparkContext(conf)
-  sc.setLogLevel("ERROR")
-
-  val testResultPath = "/Users/devops/workspace/shell/jobtitle/JobTitle/test_result"
-
   val result = new ListBuffer[(String, String, Double)]
 
-  val saveFile = "/Users/devops/workspace/shell/jobtitle/JobTitle/src-map"
+  val trainDataPath = originData
 
-  val trainDataPath = "/Users/devops/workspace/shell/jd/result/*/*"
+  val normalDataPath = formatData
 
-  val trainData = loadTrainData(trainDataPath)
+  val dataMap = getDataMap(originData)
 
-  val dataMap = getDataMap(trainData, false)
-
-  val model: tfidfModel = gettfidfModel(trainData)
+  val model: tfidfModel = gettfidfModel(normalDataPath)
 
   def hashingTF(vSize: Int) = {
     new HashingTF(Math.pow(2, vSize).toInt)
   }
 
-  // feature number
-  val hashingTF = new HashingTF(Math.pow(2, 18).toInt)
   /**
     * 分词
     * 得分到关键分词的结果
@@ -84,8 +90,6 @@ object TFIDF {
     */
   def cosSimilarity(x: String) = {
 
-    // 删除指定职位top5相似职位的匹配结果文件（每一次跑 需复写 不然出现Exception）
-    new File(new JavaFile(testResultPath)).deleteRecursively()
     val iDF = generateFeatrues(x)
     val sv1 = iDF.asInstanceOf[SV]
     val bsv1 = new SparseVector[Double](sv1.indices, sv1.values, sv1.size)
@@ -133,6 +137,8 @@ object TFIDF {
     * @return
     */
   def generateFeatrues(txt:String) = {
+    // feature number
+    val hashingTF = new HashingTF(Math.pow(2, 18).toInt)
     val tf = hashingTF.transform(segment(txt))
     val idf = model._1.transform(tf)
     idf
@@ -140,20 +146,11 @@ object TFIDF {
 
   /**
     * data mapping
-    * @param tdata
     */
-  def getDataMap(tdata: RDD[(String, Long)], saving : Boolean) = {
+  def getDataMap(file: String) = {
     // 保存职位的map（训练tdidf模型的之前要确保map是最新的）
-    val trData = tdata.map(x => (x._2 + 1, x._1))
-      .mapValues(x => x.toLowerCase)
-
-    if (saving) {
-      // 删除结果文件（exception）
-      new File(new JavaFile(saveFile)).deleteRecursively()
-      trData.map(x => x._1  + "\t" + x._2).saveAsTextFile("file://" + saveFile)
-      println("saving map finished!!!!!")
-    }
-
+    val tdata = sc.textFile(file).map(_.split("\t")).map(x => (x(1).toLong + 1, x(0)))
+    val trData = tdata.mapValues(x => x.toLowerCase)
     trData.collectAsMap()
   }
 
@@ -164,6 +161,9 @@ object TFIDF {
     * @return
     */
   def trainModel(data: RDD[(Seq[String], Long)]) = {
+
+    // feature number
+    val hashingTF = new HashingTF(Math.pow(2, 18).toInt)
 
     val idAndTFVector = data.map { case (seq, num) =>
       val tf = hashingTF.transform(seq)
@@ -196,46 +196,26 @@ object TFIDF {
 
   /**
     * 训练数据准备
-    * @param src
     * @return
     */
-  def preTrainData(src: RDD[(String, Long)]) = {
-    val data = src.map(x => (segment(x._1).toSeq, x._2 + 1))
+  def preTrainData(file:String) = {
+    val data = sc.textFile(file).map(_.split("\t")).map { x => (x(0).split(",").toSeq,
+      x(1).toLong + 1)}
     data
   }
 
   /**
     * 标准tfidf模型训练流程化
     */
-  def gettfidfModel(rDD: RDD[(String, Long)]) = {
-    val data = preTrainData(rDD)
+  def gettfidfModel(file:String) = {
+    val data = preTrainData(file)
     val model = trainModel(data)
     model
   }
 
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
 
-    // val trainData = "/Users/devops/workspace/shell/jobtitle/JobTitle/result/job_title_dict_src.txt"
-    val trainData = "/Users/devops/workspace/shell/jd/result/*/*"
-    val tdata = loadTrainData(trainData)
-    // 保存职位的map（训练tdidf模型的之前要确保map是最新的）
-    // getDataMap(tdata)
-    val data = preTrainData(tdata)
-    // val testData = "/Users/devops/workspace/shell/jobtitle/JobTitle/position_dict.txt"
-    /*val lb = sc.textFile(testData)
-      .map(_.split("\t"))
-      .map(x => x(0))
-      .randomSplit(Array(0.8, 0.2))
-      .apply(1).collect()*/
-
-    val lb = Array("销售经理", "技术总监/产品总监", "美工", "前端开发工程师", "车间距离检测员")
-
-    val model = trainModel(data)
-
-    val saveResult = cosSimilarity(lb.apply(0))
-
-    // 在一个指定相似度值之下的职位匹配，可以判断其为不相似（指定的相似度值初步可设定为0.5）
-    println("predict finished!!")
+    cosSimilarity("量化投资管理")
 
   }
 }

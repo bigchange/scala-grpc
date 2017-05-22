@@ -14,7 +14,7 @@ class GreeterServerImpl  extends  GreeterGrpc.Greeter { self =>
 
     val txt = request.name
     println("got msg:" + txt)
-    TFIDF.cosSimilarity(txt)
+    TFIDF.getInstance.cosSimilarity(txt)
     val reply = HelloReply.apply("hello, welcome using scalaPb " + txt)
     Future.successful(reply)
   }

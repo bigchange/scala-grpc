@@ -40,6 +40,9 @@ libraryDependencies += "io.grpc" % "grpc-protobuf-nano" % "1.3.0"
 // https://mvnrepository.com/artifact/io.grpc/grpc-stub
 libraryDependencies += "io.grpc" % "grpc-protobuf" % "1.3.0"
 
+// https://mvnrepository.com/artifact/io.grpc/grpc-netty
+libraryDependencies += "io.grpc" % "grpc-netty" % "1.3.0"
+
 // https://mvnrepository.com/artifact/io.netty/netty-all
 libraryDependencies += "io.netty" % "netty-all" % "4.1.11.Final"
 

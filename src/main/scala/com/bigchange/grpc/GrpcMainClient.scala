@@ -10,10 +10,8 @@ object GrpcMainClient {
   def main(args: Array[String]): Unit = {
 
     val port = 50051
-    val host = "127.0.0.1"
+    val host = args(0)
     val client = GreeterClient.apply(host, port)
-    client.greeter("i am jerry! ")
-    client.greeterAsync("java高级")
-
+    client.greeter(args(1))
   }
 }
