@@ -53,7 +53,19 @@ libraryDependencies += "com.trueaccord.scalapb" %% "scalapb-runtime" % com.truea
 libraryDependencies ++= Seq("com.trueaccord.scalapb" %% "scalapb-runtime-grpc" % com.trueaccord.scalapb.compiler.Version.scalapbVersion)
 
 // generate scala code
-PB.targets in Compile := Seq(scalapb.gen() -> (sourceManaged in Compile).value)
+PB.targets in Compile := Seq(
+  scalapb.gen() -> (sourceManaged in Compile).value
+)
+// generate and java code
+PB.targets in Compile := Seq(
+  PB.gens.java -> (sourceManaged in Compile).value,
+  scalapb.gen(javaConversions=true) -> (sourceManaged in Compile).value
+)
+
+// Generating GRPC stubs for services is enabled by default. To disable:
+/*PB.targets in Compile := Seq(
+  scalapb.gen(grpc=false) -> (sourceManaged in Compile).value
+)*/
 
 // protobuf version 3.2.0
 PB.protocVersion := "-v320"
